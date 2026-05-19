@@ -1,0 +1,99 @@
+version: '3.8'
+
+services:
+  # Servicio de MySQL
+  mysql:
+    image: mysql:8.0
+    container_name: uniext-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root_password
+      MYSQL_DATABASE: uniext
+      MYSQL_USER: uniext_user
+      MYSQL_PASSWORD: uniext_password
+      MYSQL_INITDB_SKIP_TZINFO: "yes"
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./config/database/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - uniext-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
+
+  # Servicio de PostgreSQL (alternativa)
+  # postgres:
+  #   image: postgres:13
+  #   container_name: uniext-postgres
+  #   environment:
+  #     POSTGRES_DB: uniext
+  #     POSTGRES_USER: uniext_user
+  #     POSTGRES_PASSWORD: uniext_password
+  #   ports:
+  #     - "5432:5432"
+  #   volumes:
+  #     - postgres_data:/var/lib/postgresql/data
+  #     - ./config/database/init.sql:/docker-entrypoint-initdb.d/init.sql
+  #   networks:
+  #     - uniext-network
+  #   restart: unless-stopped
+
+  # Servicio de Tomcat
+  tomcat:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: uniext-tomcat
+    ports:
+      - "8080:8080"
+      - "8009:8009"
+    environment:
+      JAVA_OPTS: "-Xms512m -Xmx1024m -Dfile.encoding=UTF-8"
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_NAME: uniext
+      DB_USER: uniext_user
+      DB_PASSWORD: uniext_password
+    depends_on:
+      mysql:
+        condition: service_healthy
+    volumes:
+      - ./logs:/usr/local/tomcat/logs
+      - ./src/main/webapp:/usr/local/tomcat/webapps/ROOT
+    networks:
+      - uniext-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/"]
+      timeout: 10s
+      retries: 3
+      interval: 30s
+
+  # PhpMyAdmin (herramienta opcional para administrar MySQL)
+  phpmyadmin:
+    image: phpmyadmin:latest
+    container_name: uniext-phpmyadmin
+    environment:
+      PMA_HOST: mysql
+      PMA_USER: root
+      PMA_PASSWORD: root_password
+    ports:
+      - "8081:80"
+    depends_on:
+      - mysql
+    networks:
+      - uniext-network
+    restart: unless-stopped
+
+volumes:
+  mysql_data:
+    driver: local
+  # postgres_data:
+  #   driver: local
+
+networks:
+  uniext-network:
+    driver: bridge

@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Configuración de contexto para Tomcat -->
+<Context docBase="uniext" path="/uniext" reloadable="true">
+
+    <!-- Datasource MySQL -->
+    <!-- Descomenta y configura según tu base de datos -->
+    <!--
+    <Resource
+        name="jdbc/uniextDB"
+        auth="Container"
+        type="javax.sql.DataSource"
+        driverClassName="com.mysql.cj.jdbc.Driver"
+        url="jdbc:mysql://localhost:3306/uniext"
+        username="root"
+        password="password"
+        maxActive="20"
+        maxIdle="10"
+        maxWait="-1"
+        removeAbandoned="true"
+        removeAbandonedTimeout="60"
+        logAbandoned="true"
+    />
+    -->
+
+    <!-- Datasource PostgreSQL -->
+    <!-- Descomenta y configura según tu base de datos -->
+    <!--
+    <Resource
+        name="jdbc/uniextDB"
+        auth="Container"
+        type="javax.sql.DataSource"
+        driverClassName="org.postgresql.Driver"
+        url="jdbc:postgresql://localhost:5432/uniext"
+        username="postgres"
+        password="password"
+        maxActive="20"
+        maxIdle="10"
+        maxWait="-1"
+    />
+    -->
+
+    <!-- Parámetros de sesión -->
+    <SessionCookiePath value="/" />
+    <SessionCookieSecure value="false" />
+    <SessionCookieHttpOnly value="true" />
+
+</Context>
